@@ -3,6 +3,7 @@ import { DeployFunction, DeployResult } from 'hardhat-deploy/types';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { deploymentConfigs } from './configs/config';
 import { sleep, verify } from './configs/functions';
+import { isTestnet, testnetDeploymentConfigs } from './configs/testnetConfig';
 import { ICodecConfig } from './configs/types';
 
 dotenv.config();
@@ -12,7 +13,8 @@ const deployCodecs = async (hre: HardhatRuntimeEnvironment) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const chainId = parseInt(await hre.getChainId(), 10);
-  const conf = deploymentConfigs[chainId];
+  const configs = isTestnet(chainId) ? testnetDeploymentConfigs : deploymentConfigs;
+  const conf = configs[chainId];
 
   const codecDeployResults: DeployResult[] = [];
   const codecConfigs: ICodecConfig[] = [];
@@ -33,7 +35,8 @@ const deployTransferSwapper: DeployFunction = async (hre: HardhatRuntimeEnvironm
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
   const chainId = parseInt(await hre.getChainId(), 10);
-  const config = deploymentConfigs[chainId];
+  const configs = isTestnet(chainId) ? testnetDeploymentConfigs : deploymentConfigs;
+  const config = configs[chainId];
 
   console.log(`deploying chainhop contract suite on chain ${chainId} using deployer ${deployer}`);
 
@@ -42,8 +45,8 @@ const deployTransferSwapper: DeployFunction = async (hre: HardhatRuntimeEnvironm
   const args = [
     config.messageBus,
     config.nativeWrap,
-    deploymentConfigs.feeSigner,
-    deploymentConfigs.feeCollector,
+    configs.feeSigner,
+    configs.feeCollector,
     codecConfigs.map((codecConfig) => codecConfig.func),
     codecDeployResults.map((codecDeployment) => codecDeployment.address),
     config.supportedDex.map((dex) => dex.address),
@@ -51,7 +54,7 @@ const deployTransferSwapper: DeployFunction = async (hre: HardhatRuntimeEnvironm
   ];
   console.log(args);
   const deployResult = await deploy('TransferSwapper', { from: deployer, log: true, args });
-
+  console.log('addr', deployResult.address);
   console.log('sleeping 15 seconds before verifying contract');
   await sleep(15000);
 
