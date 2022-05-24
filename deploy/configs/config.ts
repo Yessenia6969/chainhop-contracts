@@ -1,6 +1,12 @@
 import * as dotenv from 'dotenv';
 import { getMetaPoolCodecConfig, getSpecialMetaPoolCodecConfig, getSupportedCurvePools } from './functions';
-import { CurvePoolCodec, IConfig, UniswapV2SwapExactTokensForTokensCodec, UniswapV3ExactInputCodec } from './types';
+import {
+  CurvePoolCodec,
+  IConfig,
+  PlatypusRouter01Codec,
+  UniswapV2SwapExactTokensForTokensCodec,
+  UniswapV3ExactInputCodec
+} from './types';
 
 dotenv.config();
 
@@ -27,6 +33,16 @@ export const deploymentConfigs: IConfig = {
       { address: '0x10ed43c718714eb63d5aa57b78b54704e256024e', func: UniswapV2SwapExactTokensForTokensCodec.func } // PancakeSwap: UniswapV2Router02
     ],
     codecs: [UniswapV2SwapExactTokensForTokensCodec]
+  },
+
+  // Optimism
+  10: {
+    nativeWrap: '0x4200000000000000000000000000000000000006',
+    messageBus: process.env.MESSAGE_BUS_10,
+    supportedDex: [
+      { address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', func: UniswapV3ExactInputCodec.func } // UniswapV3: SwapRouter
+    ],
+    codecs: [UniswapV3ExactInputCodec]
   },
 
   // Polygon
@@ -57,13 +73,15 @@ export const deploymentConfigs: IConfig = {
     messageBus: process.env.MESSAGE_BUS_43114,
     supportedDex: [
       { address: '0x60aE616a2155Ee3d9A68541Ba4544862310933d4', func: UniswapV2SwapExactTokensForTokensCodec.func }, // TraderJoe: JoeRouter02
-      ...getSupportedCurvePools(43114)
+      ...getSupportedCurvePools(43114),
+      { address: '0x73256EC7575D999C360c1EeC118ECbEFd8DA7D12', func: PlatypusRouter01Codec.func } // Platypus: PlatypusRouter01
     ],
     codecs: [
       UniswapV2SwapExactTokensForTokensCodec,
       CurvePoolCodec,
       getSpecialMetaPoolCodecConfig(43114),
-      getMetaPoolCodecConfig(43114)
+      getMetaPoolCodecConfig(43114),
+      PlatypusRouter01Codec
     ]
   },
 
